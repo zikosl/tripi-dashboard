@@ -9,9 +9,10 @@ export class AuthService {
   async register(input: { firstName: string; lastName: string; email: string; phone:string; password: string }, request: Request) {
     const normalizedEmail = input.email.trim().toLowerCase();
     if (await this.db.user.findUnique({ where: { normalizedEmail } })) throw new ConflictException('An account with this email already exists.');
-    const normalizedPhone=input.phone.replace(/[^+\d]/g,'');
+    const localPhone=input.phone.replace(/\D/g,'');
+    const normalizedPhone=`+213${localPhone.slice(1)}`;
     if(await this.db.user.findFirst({where:{normalizedPhone}}))throw new ConflictException('An account with this phone number already exists.');
-    const user = await this.db.user.create({ data: { firstName: input.firstName, lastName: input.lastName, email: input.email, normalizedEmail, phone:input.phone,normalizedPhone,passwordHash: await argon2.hash(input.password) } });
+    const user = await this.db.user.create({ data: { firstName: input.firstName, lastName: input.lastName, email: input.email, normalizedEmail, phone:localPhone,normalizedPhone,passwordHash: await argon2.hash(input.password) } });
     return this.createSession(user, request);
   }
   async login(input: { email: string; password: string }, request: Request) {

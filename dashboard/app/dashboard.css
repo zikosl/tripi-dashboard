@@ -1,0 +1,23 @@
+.row-action { width:auto; min-width:82px; margin:0; padding:8px 11px; font-size:13px; }
+.row-actions { display:flex; gap:8px; align-items:center; }
+.modal-backdrop { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:20px; background:#071d18a8; backdrop-filter:blur(3px); animation:fade-in .16s ease; }
+.modal { width:min(660px,100%); max-height:calc(100vh - 40px); overflow:auto; margin:0; animation:modal-in .2s ease-out; }
+.modal header { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:18px; }
+.modal h2 { margin:0; }
+.modal-close { width:34px; height:34px; margin:0; padding:0; background:#edf5f1; color:var(--ink); font-size:22px; }
+.modal form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.modal form label { display:grid; gap:4px; font-weight:650; }
+.modal form select { width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:white; font:inherit; }
+.modal form button { grid-column:1/-1; }
+.table-skeleton { padding:8px 20px; }
+.skeleton-row { display:grid; grid-template-columns:repeat(4,minmax(100px,1fr)); gap:24px; padding:15px 0; border-bottom:1px solid var(--border); }
+.skeleton-row span { height:16px; border-radius:6px; background:linear-gradient(90deg,#edf3f0 25%,#f8fbfa 50%,#edf3f0 75%); background-size:200% 100%; animation:shimmer 1.3s infinite; }
+.skeleton-row:last-child { border-bottom:0; }
+.metric-placeholder { min-height:96px; background:linear-gradient(90deg,#edf3f0 25%,#fff 50%,#edf3f0 75%); background-size:200% 100%; animation:shimmer 1.3s infinite; }
+.activity-list { list-style:none; display:grid; gap:0; padding:0; margin:0; }
+.activity-list li { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:13px 0; border-bottom:1px solid var(--border); }
+.activity-list li:last-child { border-bottom:0; }
+@keyframes shimmer { to { background-position:-200% 0; } }
+@keyframes fade-in { from { opacity:0; } }
+@keyframes modal-in { from { opacity:0; transform:translateY(10px) scale(.985); } }
+@media (max-width:560px) { .modal form { grid-template-columns:1fr; } .modal form button { grid-column:auto; } }

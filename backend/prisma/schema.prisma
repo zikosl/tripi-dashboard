@@ -392,3 +392,33 @@ model Notification {
 
   @@index([userId, readAt])
 }
+
+model Complaint {
+  id          String          @id @default(uuid())
+  bookingId   String?
+  organizerId String?
+  customerId  String?
+  subject     String
+  description String
+  status      ComplaintStatus @default(OPEN)
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([status, createdAt])
+  @@index([organizerId])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorUserId  String?
+  action       String
+  resourceType String
+  resourceId   String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+}

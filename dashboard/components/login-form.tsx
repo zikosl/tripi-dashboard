@@ -105,7 +105,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
         <form onSubmit={submit} aria-busy={submitting}>
           <label>
             {text.email}
-            <input name="email" type="email" autoComplete="email" required />
+            <input disabled={submitting} name="email" type="email" autoComplete="email" required />
           </label>
           <label>
             {text.password}
@@ -113,6 +113,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
               name="password"
               type="password"
               autoComplete="current-password"
+              disabled={submitting}
               required
             />
           </label>
@@ -121,8 +122,9 @@ export function LoginForm({ locale }: { locale: Locale }) {
               {error}
             </p>
           ) : null}
-          <button type="submit" disabled={submitting}>
-            {submitting ? text.submitting : text.submit}
+          <button className={submitting ? 'is-pending' : ''} type="submit" disabled={submitting}>
+            {submitting && <span aria-hidden="true" className="spinner" />}
+            <span>{submitting ? text.submitting : text.submit}</span>
           </button>
         </form>
         <p className="muted">{text.tagline}</p>

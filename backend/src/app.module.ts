@@ -11,10 +11,12 @@ import { CatalogController } from './catalog/catalog.controller.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { LocalStorageService } from './uploads/local-storage.service.js';
+import { DashboardController } from './dashboard/dashboard.controller.js';
+import { DashboardService } from './dashboard/dashboard.service.js';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), JwtModule.register({ global: true }), ScheduleModule.forRoot(), ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }])],
-  controllers: [AuthController, BookingsController, CatalogController, HealthController],
-  providers: [PrismaService, AuthService, BookingsService, LocalStorageService],
+  controllers: [AuthController, BookingsController, CatalogController, DashboardController, HealthController],
+  providers: [PrismaService, AuthService, BookingsService, DashboardService, LocalStorageService],
 })
 export class AppModule {}

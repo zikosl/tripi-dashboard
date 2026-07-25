@@ -26,6 +26,8 @@ services:
       LOCAL_STORAGE_PATH: /app/uploads
       LOCAL_STORAGE_PUBLIC_URL: https://${TRIPI_DOMAIN}/uploads
       MAIL_TRANSPORT: disabled
+      SEED_DATABASE: ${SEED_DATABASE:-false}
+      SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD:-}
     volumes:
       - uploads_data:/app/uploads
     expose:

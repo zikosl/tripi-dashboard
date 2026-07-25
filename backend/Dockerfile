@@ -22,4 +22,4 @@ COPY --from=builder --chown=node:node /app/dist ./dist
 RUN mkdir -p /app/uploads/public /app/uploads/private && chown -R node:node /app/uploads
 USER node
 EXPOSE 6000
-CMD ["sh", "-c", "pnpm exec prisma db push && pnpm exec prisma generate && pnpm exec prisma db seed && node dist/main.js"]
+CMD ["sh", "-c", "pnpm exec prisma db push && pnpm exec prisma generate && if [ \"$SEED_DATABASE\" = \"true\" ]; then pnpm exec prisma db seed; fi && node dist/main.js"]

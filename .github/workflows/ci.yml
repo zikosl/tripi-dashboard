@@ -1,0 +1,35 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env: { POSTGRES_USER: tripi, POSTGRES_PASSWORD: tripi, POSTGRES_DB: tripi }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U tripi" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://tripi:tripi@localhost:5432/tripi
+      JWT_ACCESS_SECRET: ci_access_secret_at_least_32_chars
+      JWT_REFRESH_SECRET: ci_refresh_secret_at_least_32_chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.13.1 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: pnpm install --frozen-lockfile
+        working-directory: backend
+      - run: pnpm prisma:generate
+        working-directory: backend
+      - run: pnpm typecheck
+        working-directory: backend
+      - run: pnpm build
+        working-directory: backend
+      - run: pnpm install --frozen-lockfile
+        working-directory: dashboard
+      - run: pnpm typecheck
+        working-directory: dashboard
+      - run: pnpm build
+        working-directory: dashboard

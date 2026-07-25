@@ -1,0 +1,15 @@
+node_modules
+.turbo
+.next
+dist
+coverage
+.expo
+.env
+.env.local
+*.log
+.DS_Store
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Maintained as an independent Git repository.
+/client/

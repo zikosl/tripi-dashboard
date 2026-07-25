@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
-import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsPhoneNumber, IsString, MaxLength, MinLength } from 'class-validator';
 import type { Request } from 'express';
 import { AuthService } from './auth.service.js';
 import { CurrentUser, type AuthUser, JwtGuard } from '../common/auth.js';
-class RegisterDto { @IsString() @MaxLength(80) firstName!: string; @IsString() @MaxLength(80) lastName!: string; @IsEmail() email!: string; @IsString() @MinLength(10) password!: string; }
+class RegisterDto { @IsString() @MaxLength(80) firstName!: string; @IsString() @MaxLength(80) lastName!: string; @IsEmail() email!: string; @IsPhoneNumber() phone!: string; @IsString() @MinLength(10) password!: string; }
 class LoginDto { @IsEmail() email!: string; @IsString() password!: string; }
 class RefreshDto { @IsString() refreshToken!: string; }
 @Controller('auth')

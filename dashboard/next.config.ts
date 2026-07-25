@@ -2,6 +2,11 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  images: {
+    // Dashboard branding is shipped from /public. Serving it directly avoids
+    // depending on the runtime image optimizer in the standalone container.
+    unoptimized: true,
+  },
   poweredByHeader: false,
   async headers() {
     return [{ source: '/(.*)', headers: [

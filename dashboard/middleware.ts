@@ -14,5 +14,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Locale routing applies to application pages only. Public assets must keep
+  // their original path instead of being redirected to /ar.
+  matcher: ['/((?!api|_next|.*\\..*).*)'],
 };

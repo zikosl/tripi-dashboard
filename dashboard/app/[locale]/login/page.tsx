@@ -1,1 +1,10 @@
-export default async function Login({ params }: { params: Promise<{ locale: string }> }) { const ar=(await params).locale==='ar'; return <main className="login"><section className="card"><div className="brand">Tripi</div><p className="muted">{ar?'مرحبًا بك في تريبي':'Welcome to Tripi'}</p><h1>{ar?'تسجيل الدخول':'Sign in'}</h1><label>{ar?'البريد الإلكتروني':'Email'}<input type="email" autoComplete="email" /></label><label>{ar?'كلمة المرور':'Password'}<input type="password" autoComplete="current-password" /></label><button>{ar?'متابعة':'Continue'}</button><p className="muted">{ar?'اكتشف. احجز. سافر.':'Discover. Book. Travel.'}</p></section></main>; }
+import { LoginForm } from '../../../components/login-form';
+
+export default async function Login({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  return <LoginForm locale={locale === 'ar' ? 'ar' : 'en'} />;
+}

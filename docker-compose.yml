@@ -1,62 +1,18 @@
-name: infra
+name: tripi
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: global-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-tripi}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-tripi}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - db-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-tripi} -d ${POSTGRES_DB:-tripi}",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: global-pgadmin
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@tripi.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    ports:
-      - "5050:80"
-    networks:
-      - db-network
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: tripi-backend
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 4000
       APP_NAME: Tripi
       API_PREFIX: api/v1
-      DATABASE_URL: postgresql://${POSTGRES_USER:-tripi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tripi}
+      DATABASE_URL: ${DATABASE_URL}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
@@ -132,38 +88,10 @@ services:
     networks:
       - proxy-network
 
-  caddy:
-    image: caddy:2-alpine
-    container_name: global-caddy
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-      dashboard:
-        condition: service_started
-      client:
-        condition: service_started
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-      - uploads_data:/srv/uploads:ro
-    environment:
-      TRIPI_DOMAIN: ${TRIPI_DOMAIN}
-      TRIPI_DASHBOARD_DOMAIN: ${TRIPI_DASHBOARD_DOMAIN}
-    networks:
-      - proxy-network
-
 volumes:
-  postgres_data:
-  pgadmin_data:
-  caddy_data:
-  caddy_config:
   uploads_data:
+    external: true
+    name: infra_uploads_data
 
 networks:
   proxy-network:

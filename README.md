@@ -60,9 +60,10 @@ environment:
   GAMIX_DOMAIN: ${GAMIX_DOMAIN}
   TRIPI_DOMAIN: ${TRIPI_DOMAIN}
   TRIPI_DASHBOARD_DOMAIN: ${TRIPI_DASHBOARD_DOMAIN}
+  TRIPI_CLIENT_DOMAIN: ${TRIPI_CLIENT_DOMAIN}
 ```
 
-Then place `TRIPI_DOMAIN` and `TRIPI_DASHBOARD_DOMAIN` in the existing infrastructure `.env` and reload Caddy:
+Then place `TRIPI_DOMAIN`, `TRIPI_DASHBOARD_DOMAIN`, and `TRIPI_CLIENT_DOMAIN` in the existing infrastructure `.env` and reload Caddy. The Tripi application Compose file also uses `TRIPI_CLIENT_DOMAIN` to allow the web client through backend CORS.
 
 ```bash
 docker exec global-caddy caddy reload --config /etc/caddy/Caddyfile

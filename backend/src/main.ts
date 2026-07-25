@@ -20,11 +20,38 @@ async function bootstrap() {
   });
   app.setGlobalPrefix(process.env.API_PREFIX ?? 'api/v1');
   app.use(helmet());
-  app.enableCors({ origin: (process.env.CORS_ORIGINS ?? 'http://localhost:3000').split(','), credentials: true });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+  const allowedOrigins = (
+    process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:8081'
+  )
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Accept',
+      'Authorization',
+      'Content-Type',
+      'Idempotency-Key',
+    ],
+  });
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
   app.useGlobalFilters(new ApiExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
-  const config = new DocumentBuilder().setTitle('Tripi API').setDescription('Tripi bilingual group-travel marketplace API').setVersion('1.0').addBearerAuth().build();
+  const config = new DocumentBuilder()
+    .setTitle('Tripi API')
+    .setDescription('Tripi bilingual group-travel marketplace API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
   await app.listen(Number(process.env.PORT ?? 6000));
 }

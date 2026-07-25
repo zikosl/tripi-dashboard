@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AsyncButton } from './async-button';
@@ -81,12 +82,12 @@ export function DashboardShell({
     router.replace(`/${locale}/login`);
   }
 
-  if (!sessionReady) return <main className="route-loading" aria-busy="true"><div className="brand">Tripi</div><span className="spinner large" aria-hidden="true"/><p>{ar ? 'جارٍ التحقق من الجلسة…' : 'Checking your session…'}</p></main>;
+  if (!sessionReady) return <main className="route-loading" aria-busy="true"><Image className="brand-icon loading-icon" src="/tripi-dashboard-icon.png" width={72} height={72} alt="" priority/><div className="brand">Tripi</div><span className="spinner large" aria-hidden="true"/><p>{ar ? 'جارٍ التحقق من الجلسة…' : 'Checking your session…'}</p></main>;
 
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Link className="brand" href={overview}>Tripi</Link>
+        <Link className="brand brand-lockup" href={overview}><Image className="brand-icon" src="/tripi-dashboard-icon.png" width={40} height={40} alt="" priority/><span>Tripi</span></Link>
         <div className="tagline">{ar ? 'لوحة تحكم تريبي' : 'Tripi Dashboard'}</div>
         <nav className="nav" aria-label={ar ? 'التنقل الرئيسي' : 'Main navigation'}>
           <Link className={pathname === overview ? 'active' : ''} href={overview}>

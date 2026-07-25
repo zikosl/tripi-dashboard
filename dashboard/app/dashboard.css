@@ -21,3 +21,25 @@
 @keyframes fade-in { from { opacity:0; } }
 @keyframes modal-in { from { opacity:0; transform:translateY(10px) scale(.985); } }
 @media (max-width:560px) { .modal form { grid-template-columns:1fr; } .modal form button { grid-column:auto; } }
+
+:root { --ink:#201b2d; --muted:#68647a; --brand:#096bff; --accent:#00b8f0; --surface:#fff; --canvas:#f6f7fc; --border:#dde3f1; }
+.sidebar { background:#3b334a; }
+.tagline { color:#c7c9dc; }
+.nav a { color:#e2e5f4; }
+.nav a.active,.nav a:hover { background:#096bff; color:#fff; }
+.brand-lockup { display:flex; align-items:center; gap:10px; letter-spacing:-1px; }
+.brand-icon { border-radius:12px; object-fit:cover; box-shadow:0 5px 16px #091c5538; }
+.loading-icon { border-radius:20px; }
+.login-brand { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+.sidebar-footer { border-top-color:#ffffff24; }
+.sidebar-footer a,.text-button { color:#c7c9dc; }
+.badge { background:#e8f2ff; color:#0759d4; }
+.notice { border-color:#b6d3ff; background:#edf5ff; color:#164f9d; }
+.modal-backdrop { background:#1d1930b8; }
+.modal-close { background:#eef1f8; }
+.spinner.large { color:#096bff; }
+.skeleton-row span,.metric-placeholder { background-image:linear-gradient(90deg,#e9edf6 25%,#f9faff 50%,#e9edf6 75%); }
+.card { box-shadow:0 8px 25px #253b730d; }
+tbody tr:hover { background:#f5f8ff; }
+input:focus-visible,button:focus-visible,select:focus-visible,a:focus-visible { outline-color:#096bff55; }
+button:hover:not(:disabled) { box-shadow:0 6px 18px #096bff2b; }

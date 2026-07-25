@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FormEvent, useState } from 'react';
 
 type Locale = 'ar' | 'en';
@@ -99,7 +100,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
   return (
     <main className="login">
       <section className="card">
-        <div className="brand">Tripi</div>
+        <div className="login-brand"><Image className="brand-icon" src="/tripi-dashboard-icon.png" width={64} height={64} alt="" priority/><span className="brand">Tripi</span></div>
         <p className="muted">{text.welcome}</p>
         <h1>{text.title}</h1>
         <form onSubmit={submit} aria-busy={submitting}>

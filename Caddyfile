@@ -1,0 +1,25 @@
+{$TRIPI_DOMAIN} {
+  encode zstd gzip
+
+  handle_path /uploads/* {
+    root * /srv/uploads/public
+    file_server
+  }
+
+  handle /api/* {
+    reverse_proxy backend:4000
+  }
+
+  handle /docs* {
+    reverse_proxy backend:4000
+  }
+
+  handle {
+    reverse_proxy client:80
+  }
+}
+
+{$TRIPI_DASHBOARD_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy dashboard:3000
+}

@@ -26,6 +26,6 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
   const config = new DocumentBuilder().setTitle('Tripi API').setDescription('Tripi bilingual group-travel marketplace API').setVersion('1.0').addBearerAuth().build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
-  await app.listen(Number(process.env.PORT ?? 4000));
+  await app.listen(Number(process.env.PORT ?? 6000));
 }
 void bootstrap();

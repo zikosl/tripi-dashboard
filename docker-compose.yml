@@ -5,11 +5,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: tripi-backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 4000
+      PORT: 6000
       APP_NAME: Tripi
       API_PREFIX: api/v1
       DATABASE_URL: ${DATABASE_URL}
@@ -30,18 +29,16 @@ services:
     volumes:
       - uploads_data:/app/uploads
     expose:
-      - "4000"
+      - "6000"
     networks:
-      - db-network
-      - proxy-network
+      db-network:
+        aliases:
+          - tripi-backend-db
+      proxy-network:
+        aliases:
+          - tripi-backend
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "fetch('http://localhost:4000/api/v1/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
-        ]
+      test: [ "CMD", "node", "-e", "fetch('http://localhost:6000/api/v1/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -55,38 +52,20 @@ services:
         NEXT_PUBLIC_APP_NAME: Tripi
         NEXT_PUBLIC_API_URL: https://${TRIPI_DOMAIN}/api/v1
         NEXT_PUBLIC_DEFAULT_LOCALE: en
-    container_name: tripi-dashboard
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 6500
       HOSTNAME: 0.0.0.0
     expose:
-      - "3000"
+      - "6500"
     networks:
-      - proxy-network
-
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-      args:
-        EXPO_PUBLIC_APP_NAME: Tripi
-        EXPO_PUBLIC_API_URL: https://${TRIPI_DOMAIN}/api/v1
-        EXPO_PUBLIC_APP_SCHEME: tripi
-        EXPO_PUBLIC_DEFAULT_LOCALE: en
-    container_name: tripi-client
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    expose:
-      - "80"
-    networks:
-      - proxy-network
+      proxy-network:
+        aliases:
+          - tripi-dashboard
 
 volumes:
   uploads_data:

@@ -1,33 +1,37 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
 }
 
-enum Locale { 
+enum Locale {
   AR
   EN
 }
+
 enum UserRole {
   SUPER_ADMIN
   ORGANIZER_ADMIN
   ORGANIZER_STAFF
   CUSTOMER
 }
+
 enum UserStatus {
   ACTIVE
   PENDING
   SUSPENDED
   DISABLED
 }
+
 enum OrganizerStatus {
   PENDING
   APPROVED
   SUSPENDED
   REJECTED
 }
+
 enum TripStatus {
   DRAFT
   PUBLISHED
@@ -37,10 +41,12 @@ enum TripStatus {
   CANCELLED
   ARCHIVED
 }
+
 enum TripVisibility {
   PUBLIC
   UNLISTED
 }
+
 enum BookingStatus {
   PENDING_PAYMENT
   PAYMENT_REVIEW
@@ -50,6 +56,7 @@ enum BookingStatus {
   COMPLETED
   EXPIRED
 }
+
 enum PaymentStatus {
   UNPAID
   PENDING_VERIFICATION
@@ -58,12 +65,14 @@ enum PaymentStatus {
   REFUND_PENDING
   REFUNDED
 }
+
 enum PaymentMethod {
   CASH
   BANK_TRANSFER
   PAYMENT_PROOF
   ONLINE
 }
+
 enum NotificationType {
   BOOKING_CREATED
   BOOKING_CONFIRMED
@@ -76,6 +85,7 @@ enum NotificationType {
   TRIP_REMINDER
   SYSTEM
 }
+
 enum ComplaintStatus {
   OPEN
   IN_REVIEW
@@ -84,277 +94,301 @@ enum ComplaintStatus {
 }
 
 model User {
-  id String @id @default(uuid())
-  firstName String
-  lastName String
-  email String
-  normalizedEmail String @unique
-  phone String?
-  normalizedPhone String? @unique
-  passwordHash String
-  avatarUrl String?
-  role UserRole @default(CUSTOMER)
-  status UserStatus @default(ACTIVE)
-  locale Locale @default(EN)
-  emailVerifiedAt DateTime?
-  phoneVerifiedAt DateTime?
-  lastLoginAt DateTime?
-  mustChangePassword Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-  sessions Session[]
-  memberships OrganizerMember[]
-  bookings Booking[] @relation("CustomerBookings")
-  notifications Notification[]
+  id                 String            @id @default(uuid())
+  firstName          String
+  lastName           String
+  email              String
+  normalizedEmail    String            @unique
+  phone              String?
+  normalizedPhone    String?           @unique
+  passwordHash       String
+  avatarUrl          String?
+  role               UserRole          @default(CUSTOMER)
+  status             UserStatus        @default(ACTIVE)
+  locale             Locale            @default(EN)
+  emailVerifiedAt    DateTime?
+  phoneVerifiedAt    DateTime?
+  lastLoginAt        DateTime?
+  mustChangePassword Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+  sessions           Session[]
+  memberships        OrganizerMember[]
+  bookings           Booking[]         @relation("CustomerBookings")
+  notifications      Notification[]
+
   @@index([role])
   @@index([status])
 }
 
 model Session {
-  id String @id @default(uuid())
-  userId String
+  id               String    @id @default(uuid())
+  userId           String
   refreshTokenHash String
-  userAgent String?
-  ipAddress String?
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, revokedAt])
 }
+
 model Organizer {
-  id String @id @default(uuid())
-  name String
-  slug String @unique
-  description String?
-  logoUrl String?
-  coverUrl String?
-  email String
-  phone String?
-  address String?
-  city String?
-  status OrganizerStatus @default(PENDING)
-  commissionRate Decimal @default(0) @db.Decimal(5,2)
-  defaultLocale Locale @default(EN)
+  id                 String            @id @default(uuid())
+  name               String
+  slug               String            @unique
+  description        String?
+  logoUrl            String?
+  coverUrl           String?
+  email              String
+  phone              String?
+  address            String?
+  city               String?
+  status             OrganizerStatus   @default(PENDING)
+  commissionRate     Decimal           @default(0) @db.Decimal(5, 2)
+  defaultLocale      Locale            @default(EN)
   cancellationPolicy String?
-  approvedAt DateTime?
-  approvedById String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-  members OrganizerMember[]
-  trips Trip[]
-  bookings Booking[]
+  approvedAt         DateTime?
+  approvedById       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+  members            OrganizerMember[]
+  trips              Trip[]
+  bookings           Booking[]
+
   @@index([status])
 }
+
 model OrganizerMember {
-  id String @id @default(uuid())
+  id          String    @id @default(uuid())
   organizerId String
-  userId String
-  isOwner Boolean @default(false)
+  userId      String
+  isOwner     Boolean   @default(false)
   permissions String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  organizer   Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([organizerId, userId])
 }
+
 model Destination {
-  id String @id @default(uuid())
-  slug String @unique
-  city String
+  id              String                   @id @default(uuid())
+  slug            String                   @unique
+  city            String
   stateOrProvince String?
-  country String @default("DZ")
-  imageUrl String?
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  translations DestinationTranslation[]
-  trips Trip[]
+  country         String                   @default("DZ")
+  imageUrl        String?
+  isActive        Boolean                  @default(true)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  translations    DestinationTranslation[]
+  trips           Trip[]
 }
+
 model DestinationTranslation {
-  id String @id @default(uuid())
+  id            String      @id @default(uuid())
   destinationId String
-  locale Locale
-  name String
-  description String?
-  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  locale        Locale
+  name          String
+  description   String?
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
   @@unique([destinationId, locale])
 }
+
 model TripCategory {
-  id String @id @default(uuid())
-  slug String @unique
-  icon String?
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String                    @id @default(uuid())
+  slug         String                    @unique
+  icon         String?
+  isActive     Boolean                   @default(true)
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
   translations TripCategoryTranslation[]
-  trips Trip[]
+  trips        Trip[]
 }
+
 model TripCategoryTranslation {
-  id String @id @default(uuid())
-  categoryId String
-  locale Locale
-  name String
+  id          String       @id @default(uuid())
+  categoryId  String
+  locale      Locale
+  name        String
   description String?
-  category TripCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category    TripCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
   @@unique([categoryId, locale])
 }
+
 model Trip {
-  id String @id @default(uuid())
-  organizerId String
-  categoryId String
-  destinationId String
-  slug String @unique
-  departureCity String
-  departureAddress String?
-  departureLatitude Decimal? @db.Decimal(10,7)
-  departureLongitude Decimal? @db.Decimal(10,7)
+  id                      String            @id @default(uuid())
+  organizerId             String
+  categoryId              String
+  destinationId           String
+  slug                    String            @unique
+  departureCity           String
+  departureAddress        String?
+  departureLatitude       Decimal?          @db.Decimal(10, 7)
+  departureLongitude      Decimal?          @db.Decimal(10, 7)
   destinationNameSnapshot String
-  startAt DateTime
-  endAt DateTime
-  timezone String @default("Africa/Algiers")
-  bookingDeadline DateTime
-  pricePerPerson Decimal @db.Decimal(12,2)
-  currency String @default("DZD")
-  totalSeats Int
-  reservedSeats Int @default(0)
-  minimumParticipants Int @default(1)
-  status TripStatus @default(DRAFT)
-  visibility TripVisibility @default(PUBLIC)
-  publishedAt DateTime?
-  cancelledAt DateTime?
-  cancellationReason String?
-  createdById String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-  organizer Organizer @relation(fields: [organizerId], references: [id])
-  category TripCategory @relation(fields: [categoryId], references: [id])
-  destination Destination @relation(fields: [destinationId], references: [id])
-  translations TripTranslation[]
-  images TripImage[]
-  bookings Booking[]
+  startAt                 DateTime
+  endAt                   DateTime
+  timezone                String            @default("Africa/Algiers")
+  bookingDeadline         DateTime
+  pricePerPerson          Decimal           @db.Decimal(12, 2)
+  currency                String            @default("DZD")
+  totalSeats              Int
+  reservedSeats           Int               @default(0)
+  minimumParticipants     Int               @default(1)
+  status                  TripStatus        @default(DRAFT)
+  visibility              TripVisibility    @default(PUBLIC)
+  publishedAt             DateTime?
+  cancelledAt             DateTime?
+  cancellationReason      String?
+  createdById             String
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  deletedAt               DateTime?
+  organizer               Organizer         @relation(fields: [organizerId], references: [id])
+  category                TripCategory      @relation(fields: [categoryId], references: [id])
+  destination             Destination       @relation(fields: [destinationId], references: [id])
+  translations            TripTranslation[]
+  images                  TripImage[]
+  bookings                Booking[]
+
   @@index([organizerId, status])
   @@index([status, startAt])
 }
+
 model TripTranslation {
-  id String @id @default(uuid())
-  tripId String
-  locale Locale
-  title String
-  shortDescription String?
-  description String
-  itinerary Json?
-  includedItems Json?
-  excludedItems Json?
-  terms String?
+  id                 String   @id @default(uuid())
+  tripId             String
+  locale             Locale
+  title              String
+  shortDescription   String?
+  description        String
+  itinerary          Json?
+  includedItems      Json?
+  excludedItems      Json?
+  terms              String?
   cancellationPolicy String?
-  normalizedTitle String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  normalizedTitle    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  trip               Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
   @@unique([tripId, locale])
   @@index([locale])
 }
+
 model TripImage {
-  id String @id @default(uuid())
-  tripId String
-  url String
+  id         String   @id @default(uuid())
+  tripId     String
+  url        String
   storageKey String
-  altText String?
-  sortOrder Int @default(0)
-  isCover Boolean @default(false)
-  createdAt DateTime @default(now())
-  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  altText    String?
+  sortOrder  Int      @default(0)
+  isCover    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
+
 model Booking {
-  id String @id @default(uuid())
-  bookingReference String @unique
-  customerId String
-  tripId String
-  organizerId String
-  seatCount Int
-  unitPrice Decimal @db.Decimal(12,2)
-  subtotal Decimal @db.Decimal(12,2)
-  serviceFee Decimal @db.Decimal(12,2)
-  discountAmount Decimal @db.Decimal(12,2)
-  totalAmount Decimal @db.Decimal(12,2)
-  currency String
-  status BookingStatus
-  paymentStatus PaymentStatus
-  expiresAt DateTime?
-  confirmedAt DateTime?
-  cancelledAt DateTime?
+  id                 String                 @id @default(uuid())
+  bookingReference   String                 @unique
+  customerId         String
+  tripId             String
+  organizerId        String
+  seatCount          Int
+  unitPrice          Decimal                @db.Decimal(12, 2)
+  subtotal           Decimal                @db.Decimal(12, 2)
+  serviceFee         Decimal                @db.Decimal(12, 2)
+  discountAmount     Decimal                @db.Decimal(12, 2)
+  totalAmount        Decimal                @db.Decimal(12, 2)
+  currency           String
+  status             BookingStatus
+  paymentStatus      PaymentStatus
+  expiresAt          DateTime?
+  confirmedAt        DateTime?
+  cancelledAt        DateTime?
   cancellationReason String?
-  customerNotes String?
-  organizerNotes String?
-  idempotencyKey String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  customer User @relation("CustomerBookings", fields: [customerId], references: [id])
-  trip Trip @relation(fields: [tripId], references: [id])
-  organizer Organizer @relation(fields: [organizerId], references: [id])
-  travelers Traveler[]
-  payments Payment[]
-  history BookingStatusHistory[]
+  customerNotes      String?
+  organizerNotes     String?
+  idempotencyKey     String
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  customer           User                   @relation("CustomerBookings", fields: [customerId], references: [id])
+  trip               Trip                   @relation(fields: [tripId], references: [id])
+  organizer          Organizer              @relation(fields: [organizerId], references: [id])
+  travelers          Traveler[]
+  payments           Payment[]
+  history            BookingStatusHistory[]
+
   @@unique([customerId, idempotencyKey])
   @@index([organizerId, status])
 }
+
 model BookingStatusHistory {
-  id String @id @default(uuid())
-  bookingId String
+  id             String         @id @default(uuid())
+  bookingId      String
   previousStatus BookingStatus?
-  newStatus BookingStatus
-  actorUserId String?
-  reason String?
-  createdAt DateTime @default(now())
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  newStatus      BookingStatus
+  actorUserId    String?
+  reason         String?
+  createdAt      DateTime       @default(now())
+  booking        Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
+
 model Traveler {
-  id String @id @default(uuid())
-  bookingId String
-  firstName String
-  lastName String
-  dateOfBirth DateTime?
-  gender String?
-  phone String?
-  documentType String?
-  documentNumber String?
+  id              String    @id @default(uuid())
+  bookingId       String
+  firstName       String
+  lastName        String
+  dateOfBirth     DateTime?
+  gender          String?
+  phone           String?
+  documentType    String?
+  documentNumber  String?
   specialRequests String?
-  isPrimary Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  isPrimary       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
+
 model Payment {
-  id String @id @default(uuid())
-  bookingId String
-  amount Decimal @db.Decimal(12,2)
-  currency String
-  method PaymentMethod
-  status PaymentStatus
-  transactionReference String?
-  paymentProofUrl String?
+  id                     String        @id @default(uuid())
+  bookingId              String
+  amount                 Decimal       @db.Decimal(12, 2)
+  currency               String
+  method                 PaymentMethod
+  status                 PaymentStatus
+  transactionReference   String?
+  paymentProofUrl        String?
   paymentProofStorageKey String?
-  submittedAt DateTime?
-  verifiedAt DateTime?
-  verifiedById String?
-  rejectionReason String?
-  metadata Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  submittedAt            DateTime?
+  verifiedAt             DateTime?
+  verifiedById           String?
+  rejectionReason        String?
+  metadata               Json?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  booking                Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
+
 model Notification {
-  id String @id @default(uuid())
-  userId String
-  type NotificationType
+  id             String           @id @default(uuid())
+  userId         String
+  type           NotificationType
   translationKey String
-  variables Json
-  readAt DateTime?
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variables      Json
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, readAt])
 }

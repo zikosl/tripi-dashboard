@@ -2,6 +2,15 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import {
+  IoBookOutline,
+  IoCalendarClearOutline,
+  IoGridOutline,
+  IoLocationOutline,
+  IoLogOutOutline,
+  IoPeopleOutline,
+  IoShapesOutline,
+} from 'react-icons/io5';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AsyncButton } from './async-button';
@@ -10,13 +19,20 @@ type Role = 'admin' | 'organizer';
 
 const navigation = {
   admin: [
-    ['trips', 'الرحلات', 'Trips'],
-    ['bookings', 'الحجوزات', 'Bookings'],
-    ['organizers', 'إدارة المنظمين', 'Manage organizers'],
+    ['trips', 'الرحلات', 'Trips', IoBookOutline],
+    ['bookings', 'الحجوزات', 'Bookings', IoCalendarClearOutline],
+    ['organizers', 'إدارة المنظمين', 'Manage organizers', IoPeopleOutline],
+    ['categories', 'التصنيفات', 'Categories', IoShapesOutline],
+    [
+      'destinations',
+      'الوجهات والانطلاق',
+      'Destinations & departures',
+      IoLocationOutline,
+    ],
   ],
   organizer: [
-    ['trips', 'الرحلات', 'Trips'],
-    ['bookings', 'الحجوزات', 'Bookings'],
+    ['trips', 'الرحلات', 'Trips', IoBookOutline],
+    ['bookings', 'الحجوزات', 'Bookings', IoCalendarClearOutline],
   ],
 } as const;
 
@@ -41,32 +57,57 @@ export function DashboardShell({
     async function validate() {
       let accessToken = sessionStorage.getItem('tripi.accessToken');
       if (!accessToken) throw new Error('Unauthorized');
-      let response = await fetch(`${apiUrl}/auth/me`, { headers: { Authorization: `Bearer ${accessToken}`, 'Accept-Language': locale }, signal: controller.signal });
+      let response = await fetch(`${apiUrl}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Accept-Language': locale,
+        },
+        signal: controller.signal,
+      });
       if (response.status === 401) {
         const refreshToken = sessionStorage.getItem('tripi.refreshToken');
         if (!refreshToken) throw new Error('Unauthorized');
-        const refresh = await fetch(`${apiUrl}/auth/refresh`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refreshToken}), signal:controller.signal });
+        const refresh = await fetch(`${apiUrl}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+          signal: controller.signal,
+        });
         if (!refresh.ok) throw new Error('Unauthorized');
-        const refreshed = await refresh.json() as {data?:{accessToken:string;refreshToken:string}};
+        const refreshed = (await refresh.json()) as {
+          data?: { accessToken: string; refreshToken: string };
+        };
         if (!refreshed.data) throw new Error('Unauthorized');
-        sessionStorage.setItem('tripi.accessToken',refreshed.data.accessToken); sessionStorage.setItem('tripi.refreshToken',refreshed.data.refreshToken); accessToken=refreshed.data.accessToken;
-        response=await fetch(`${apiUrl}/auth/me`,{headers:{Authorization:`Bearer ${accessToken}`,'Accept-Language':locale},signal:controller.signal});
+        sessionStorage.setItem('tripi.accessToken', refreshed.data.accessToken);
+        sessionStorage.setItem(
+          'tripi.refreshToken',
+          refreshed.data.refreshToken,
+        );
+        accessToken = refreshed.data.accessToken;
+        response = await fetch(`${apiUrl}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Accept-Language': locale,
+          },
+          signal: controller.signal,
+        });
       }
       if (!response.ok) throw new Error('Unauthorized');
-      const payload = await response.json() as { data?: { role?: string } };
-        const userRole = payload.data?.role;
-        const allowed = role === 'admin'
+      const payload = (await response.json()) as { data?: { role?: string } };
+      const userRole = payload.data?.role;
+      const allowed =
+        role === 'admin'
           ? userRole === 'SUPER_ADMIN'
           : userRole === 'ORGANIZER_ADMIN' || userRole === 'ORGANIZER_STAFF';
-        if (!allowed) throw new Error('Forbidden');
-        setSessionReady(true);
+      if (!allowed) throw new Error('Forbidden');
+      setSessionReady(true);
     }
-    void validate().catch(error => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        sessionStorage.removeItem('tripi.accessToken');
-        sessionStorage.removeItem('tripi.refreshToken');
-        router.replace(`/${locale}/login`);
-      });
+    void validate().catch((error) => {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      sessionStorage.removeItem('tripi.accessToken');
+      sessionStorage.removeItem('tripi.refreshToken');
+      router.replace(`/${locale}/login`);
+    });
 
     return () => controller.abort();
   }, [locale, role, router]);
@@ -75,36 +116,88 @@ export function DashboardShell({
     const refreshToken = sessionStorage.getItem('tripi.refreshToken');
     if (refreshToken) {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
-      await fetch(`${apiUrl}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken }) }).catch(() => undefined);
+      await fetch(`${apiUrl}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      }).catch(() => undefined);
     }
     sessionStorage.removeItem('tripi.accessToken');
     sessionStorage.removeItem('tripi.refreshToken');
     router.replace(`/${locale}/login`);
   }
 
-  if (!sessionReady) return <main className="route-loading" aria-busy="true"><Image className="brand-icon loading-icon" src="/tripi-dashboard-icon.png" width={72} height={72} alt="" priority/><div className="brand">Tripi</div><span className="spinner large" aria-hidden="true"/><p>{ar ? 'جارٍ التحقق من الجلسة…' : 'Checking your session…'}</p></main>;
+  if (!sessionReady)
+    return (
+      <main className="route-loading" aria-busy="true">
+        <Image
+          className="brand-icon loading-icon"
+          src="/tripi-dashboard-icon.png"
+          width={72}
+          height={72}
+          alt=""
+          priority
+        />
+        <div className="brand">Tripi</div>
+        <span className="spinner large" aria-hidden="true" />
+        <p>{ar ? 'جارٍ التحقق من الجلسة…' : 'Checking your session…'}</p>
+      </main>
+    );
 
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Link className="brand brand-lockup" href={overview}><Image className="brand-icon" src="/tripi-dashboard-icon.png" width={40} height={40} alt="" priority/><span>Tripi</span></Link>
-        <div className="tagline">{ar ? 'لوحة تحكم تريبي' : 'Tripi Dashboard'}</div>
-        <nav className="nav" aria-label={ar ? 'التنقل الرئيسي' : 'Main navigation'}>
-          <Link className={pathname === overview ? 'active' : ''} href={overview}>
-            {ar ? 'نظرة عامة' : 'Overview'}
+        <Link className="brand brand-lockup" href={overview}>
+          <Image
+            className="brand-icon"
+            src="/tripi-dashboard-icon.png"
+            width={40}
+            height={40}
+            alt=""
+            priority
+          />
+          <span>Tripi</span>
+        </Link>
+        <div className="tagline">
+          {ar ? 'لوحة تحكم تريبي' : 'Tripi Dashboard'}
+        </div>
+        <nav
+          className="nav"
+          aria-label={ar ? 'التنقل الرئيسي' : 'Main navigation'}
+        >
+          <Link
+            className={pathname === overview ? 'active' : ''}
+            href={overview}
+          >
+            <IoGridOutline aria-hidden="true" size={18} />
+            <span>{ar ? 'نظرة عامة' : 'Overview'}</span>
           </Link>
-          {navigation[role].map(([path, arabic, english]) => {
+          {navigation[role].map(([path, arabic, english, Icon]) => {
             const href = `${overview}/${path}`;
             return (
-              <Link className={pathname === href ? 'active' : ''} key={path} href={href}>
-                {ar ? arabic : english}
+              <Link
+                className={pathname === href ? 'active' : ''}
+                key={path}
+                href={href}
+              >
+                <Icon aria-hidden="true" size={18} />
+                <span>{ar ? arabic : english}</span>
               </Link>
             );
           })}
         </nav>
         <div className="sidebar-footer">
-          <Link href={`/${ar ? 'en' : 'ar'}${pathname.slice(3)}`}>{ar ? 'English' : 'العربية'}</Link>
-          <AsyncButton className="text-button" onAction={logout} pendingLabel={ar ? 'جارٍ الخروج…' : 'Signing out…'}>{ar ? 'تسجيل الخروج' : 'Sign out'}</AsyncButton>
+          <Link href={`/${ar ? 'en' : 'ar'}${pathname.slice(3)}`}>
+            {ar ? 'English' : 'العربية'}
+          </Link>
+          <AsyncButton
+            className="text-button"
+            onAction={logout}
+            pendingLabel={ar ? 'جارٍ الخروج…' : 'Signing out…'}
+          >
+            <IoLogOutOutline aria-hidden="true" size={17} />
+            <span>{ar ? 'تسجيل الخروج' : 'Sign out'}</span>
+          </AsyncButton>
         </div>
       </aside>
       <main className="main">{children}</main>

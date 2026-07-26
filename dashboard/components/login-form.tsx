@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 
 type Locale = 'ar' | 'en';
@@ -60,10 +61,14 @@ export function LoginForm({ locale }: { locale: Locale }) {
     try {
       const loginResponse = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept-Language': locale },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Language': locale,
+        },
         body: JSON.stringify({ email, password }),
       });
-      const loginBody = (await loginResponse.json()) as Success<AuthTokens> | Failure;
+      const loginBody = (await loginResponse.json()) as
+        Success<AuthTokens> | Failure;
       if (!loginResponse.ok || !loginBody.success) {
         throw new Error(readError(loginBody, text.genericError));
       }
@@ -74,7 +79,8 @@ export function LoginForm({ locale }: { locale: Locale }) {
           'Accept-Language': locale,
         },
       });
-      const meBody = (await meResponse.json()) as Success<CurrentUser> | Failure;
+      const meBody = (await meResponse.json()) as
+        Success<CurrentUser> | Failure;
       if (!meResponse.ok || !meBody.success) {
         throw new Error(readError(meBody, text.genericError));
       }
@@ -100,13 +106,29 @@ export function LoginForm({ locale }: { locale: Locale }) {
   return (
     <main className="login">
       <section className="card">
-        <div className="login-brand"><Image className="brand-icon" src="/tripi-dashboard-icon.png" width={64} height={64} alt="" priority/><span className="brand">Tripi</span></div>
+        <div className="login-brand">
+          <Image
+            className="brand-icon"
+            src="/tripi-dashboard-icon.png"
+            width={64}
+            height={64}
+            alt=""
+            priority
+          />
+          <span className="brand">Tripi</span>
+        </div>
         <p className="muted">{text.welcome}</p>
         <h1>{text.title}</h1>
         <form onSubmit={submit} aria-busy={submitting}>
           <label>
             {text.email}
-            <input disabled={submitting} name="email" type="email" autoComplete="email" required />
+            <input
+              disabled={submitting}
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+            />
           </label>
           <label>
             {text.password}
@@ -123,12 +145,19 @@ export function LoginForm({ locale }: { locale: Locale }) {
               {error}
             </p>
           ) : null}
-          <button className={submitting ? 'is-pending' : ''} type="submit" disabled={submitting}>
+          <button
+            className={submitting ? 'is-pending' : ''}
+            type="submit"
+            disabled={submitting}
+          >
             {submitting && <span aria-hidden="true" className="spinner" />}
             <span>{submitting ? text.submitting : text.submit}</span>
           </button>
         </form>
         <p className="muted">{text.tagline}</p>
+        <Link className="login-legal-link" href={`/${locale}/privacy`}>
+          {locale === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}
+        </Link>
       </section>
     </main>
   );

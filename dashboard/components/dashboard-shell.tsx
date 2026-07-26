@@ -187,6 +187,9 @@ export function DashboardShell({
           })}
         </nav>
         <div className="sidebar-footer">
+          <Link href={`/${locale}/privacy`}>
+            {ar ? 'سياسة الخصوصية' : 'Privacy Policy'}
+          </Link>
           <Link href={`/${ar ? 'en' : 'ar'}${pathname.slice(3)}`}>
             {ar ? 'English' : 'العربية'}
           </Link>

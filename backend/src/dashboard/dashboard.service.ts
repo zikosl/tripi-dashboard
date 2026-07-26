@@ -448,8 +448,7 @@ export class DashboardService {
       customerEmail: string;
       tripId: string;
       seatCount: number;
-      travelerFirstName: string;
-      travelerLastName: string;
+      travelers: Array<{ firstName: string; lastName: string }>;
       paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'PAYMENT_PROOF';
     },
   ) {
@@ -464,6 +463,8 @@ export class DashboardService {
       throw new BadRequestException(
         'A customer account with this email is required.',
       );
+    if (input.travelers.length !== input.seatCount)
+      throw new BadRequestException('Traveler count must match seat count.');
     const booking = await this.db.$transaction(async (tx) => {
       const trip = await tx.trip.findFirst({
         where: { id: input.tripId, ...(organizerId ? { organizerId } : {}) },
@@ -496,10 +497,9 @@ export class DashboardService {
           paymentStatus: 'UNPAID',
           idempotencyKey: `dashboard-${randomBytes(12).toString('hex')}`,
           travelers: {
-            create: Array.from({ length: input.seatCount }, (_, index) => ({
-              firstName:
-                index === 0 ? input.travelerFirstName : `Traveler ${index + 1}`,
-              lastName: index === 0 ? input.travelerLastName : 'Pending',
+            create: input.travelers.map((traveler, index) => ({
+              firstName: traveler.firstName,
+              lastName: traveler.lastName,
               isPrimary: index === 0,
             })),
           },
@@ -520,6 +520,37 @@ export class DashboardService {
     });
     await this.audit(user, 'CREATE', 'Booking', booking.id);
     return booking;
+  }
+
+  async deleteBooking(user: AuthUser, id: string) {
+    const organizerId =
+      user.role === 'SUPER_ADMIN' ? undefined : await this.organizer(user);
+    return this.db.$transaction(async (tx) => {
+      const booking = await tx.booking.findFirst({
+        where: { id, ...(organizerId ? { organizerId } : {}) },
+      });
+      if (!booking) throw new NotFoundException('Booking not found.');
+      if (
+        !booking.status.startsWith('CANCELLED') &&
+        booking.status !== 'EXPIRED'
+      ) {
+        await tx.trip.update({
+          where: { id: booking.tripId },
+          data: { reservedSeats: { decrement: booking.seatCount } },
+        });
+      }
+      await tx.booking.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          actorUserId: user.sub,
+          action: 'DELETE',
+          resourceType: 'Booking',
+          resourceId: id,
+          metadata: { bookingReference: booking.bookingReference },
+        },
+      });
+      return { id };
+    });
   }
 
   async updateBooking(

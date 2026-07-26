@@ -387,6 +387,68 @@ td {
   align-items: center;
   justify-content: center;
 }
+.danger-action {
+  background: #c92a2a;
+  color: #fff;
+}
+.travelers-fields {
+  grid-column: 1/-1;
+  margin: 2px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.travelers-fields legend {
+  padding-inline: 7px;
+  font-weight: 700;
+}
+.traveler-row {
+  display: grid;
+  grid-template-columns: 140px repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.traveler-row:last-child {
+  border-bottom: 0;
+}
+.preview-content {
+  display: grid;
+  gap: 22px;
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.preview-grid > div,
+.preview-list > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafbff;
+}
+.preview-content h3 {
+  margin: 0 0 10px;
+}
+.preview-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 650px) {
+  .traveler-row {
+    grid-template-columns: 1fr;
+  }
+  .preview-grid,
+  .preview-list {
+    grid-template-columns: 1fr;
+  }
+}
 .modal {
   padding: 22px;
   border-radius: 22px;

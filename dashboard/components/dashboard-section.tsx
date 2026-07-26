@@ -7,10 +7,12 @@ import {
   IoCloudOfflineOutline,
   IoCreateOutline,
   IoDownloadOutline,
+  IoEyeOutline,
   IoFilterOutline,
   IoPowerOutline,
   IoRefresh,
   IoSearchOutline,
+  IoTrashOutline,
 } from 'react-icons/io5';
 import { AsyncButton } from './async-button';
 
@@ -148,13 +150,11 @@ const createFields: Record<string, Field[]> = {
   'admin/bookings': [
     ...fields(['customerEmail', 'tripId']),
     { name: 'seatCount', label: 'Seat count', type: 'number', required: true },
-    ...fields(['travelerFirstName', 'travelerLastName']),
     { name: 'paymentMethod', label: 'Payment method', required: true },
   ],
   'organizer/bookings': [
     ...fields(['customerEmail', 'tripId']),
     { name: 'seatCount', label: 'Seat count', type: 'number', required: true },
-    ...fields(['travelerFirstName', 'travelerLastName']),
     { name: 'paymentMethod', label: 'Payment method', required: true },
   ],
   'organizer/team': [
@@ -193,7 +193,6 @@ const editFields: Record<string, Field[]> = {
     { name: 'totalSeats', label: 'Total seats', type: 'number' },
   ],
   bookings: [
-    { name: 'seatCount', label: 'Seat count', type: 'number' },
     { name: 'organizerNotes', label: 'Organizer notes', required: false },
     { name: 'status', label: 'Booking status' },
   ],
@@ -227,6 +226,8 @@ export function DashboardSection({
   const [notice, setNotice] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [preview, setPreview] = useState<Row | null>(null);
+  const [bookingSeats, setBookingSeats] = useState(1);
   const [saving, setSaving] = useState(false);
   const [revision, setRevision] = useState(0);
   const [catalog, setCatalog] = useState<{
@@ -333,6 +334,21 @@ export function DashboardSection({
       'commissionRate',
     ])
       if (name in body) body[name] = Number(body[name]);
+    if (section === 'bookings' && !editing) {
+      body.travelers = Array.from(
+        { length: Number(body.seatCount) },
+        (_, index) => ({
+          firstName: String(body[`travelerFirstName${index}`] ?? ''),
+          lastName: String(body[`travelerLastName${index}`] ?? ''),
+        }),
+      );
+      for (const name of Object.keys(body))
+        if (
+          name.startsWith('travelerFirstName') ||
+          name.startsWith('travelerLastName')
+        )
+          delete body[name];
+    }
     try {
       await api(
         editing
@@ -404,6 +420,24 @@ export function DashboardSection({
       setNotice(ar ? 'تم تحديث الحالة.' : 'Status updated.');
     } catch (cause) {
       setNotice(null);
+      setError(message(cause, ar));
+    }
+  }
+  async function removeBooking(row: Row) {
+    if (
+      !window.confirm(
+        ar
+          ? 'حذف هذا الحجز نهائيًا؟ سيتم تحرير المقاعد المحجوزة.'
+          : 'Permanently delete this booking? Reserved seats will be released.',
+      )
+    )
+      return;
+    setError(null);
+    try {
+      await api(`${apiUrl}/dashboard/bookings/${row.id}`, { method: 'DELETE' });
+      setNotice(ar ? 'تم حذف الحجز.' : 'Booking deleted.');
+      setRevision((value) => value + 1);
+    } catch (cause) {
       setError(message(cause, ar));
     }
   }
@@ -540,6 +574,16 @@ export function DashboardSection({
                     {hasStatusAction(section) && (
                       <td>
                         <div className="row-actions">
+                          {section === 'bookings' && (
+                            <button
+                              className="row-action secondary-action"
+                              onClick={() => setPreview(row)}
+                              type="button"
+                            >
+                              <IoEyeOutline aria-hidden="true" />
+                              {ar ? 'معاينة' : 'Preview'}
+                            </button>
+                          )}
                           {editFields[section] && (
                             <button
                               className="row-action secondary-action"
@@ -562,6 +606,16 @@ export function DashboardSection({
                             <IoPowerOutline aria-hidden="true" />
                             {actionLabel(section, row.status, ar)}
                           </AsyncButton>
+                          {section === 'bookings' && (
+                            <AsyncButton
+                              className="row-action danger-action"
+                              onAction={() => removeBooking(row)}
+                              pendingLabel="…"
+                            >
+                              <IoTrashOutline aria-hidden="true" />
+                              {ar ? 'حذف' : 'Delete'}
+                            </AsyncButton>
+                          )}
                         </div>
                       </td>
                     )}
@@ -716,13 +770,53 @@ export function DashboardSection({
                           : undefined
                       }
                       disabled={saving}
+                      min={field.name === 'seatCount' ? 1 : undefined}
                       name={field.name}
+                      onChange={
+                        field.name === 'seatCount'
+                          ? (event) =>
+                              setBookingSeats(
+                                Math.max(1, Number(event.target.value) || 1),
+                              )
+                          : undefined
+                      }
                       required={field.required !== false}
                       type={field.type ?? 'text'}
                     />
                   )}
                 </label>
               ))}
+              {section === 'bookings' && !editing && (
+                <fieldset className="travelers-fields">
+                  <legend>
+                    {ar ? 'بيانات المسافرين' : 'Traveler information'}
+                  </legend>
+                  {Array.from({ length: bookingSeats }, (_, index) => (
+                    <div className="traveler-row" key={index}>
+                      <strong>
+                        {ar ? `المسافر ${index + 1}` : `Traveler ${index + 1}`}
+                        {index === 0 ? (ar ? ' · الرئيسي' : ' · Primary') : ''}
+                      </strong>
+                      <label>
+                        {ar ? 'الاسم' : 'First name'}
+                        <input
+                          disabled={saving}
+                          name={`travelerFirstName${index}`}
+                          required
+                        />
+                      </label>
+                      <label>
+                        {ar ? 'اللقب' : 'Last name'}
+                        <input
+                          disabled={saving}
+                          name={`travelerLastName${index}`}
+                          required
+                        />
+                      </label>
+                    </div>
+                  ))}
+                </fieldset>
+              )}
               <button
                 className={saving ? 'is-pending' : ''}
                 disabled={saving}
@@ -743,7 +837,112 @@ export function DashboardSection({
           </section>
         </div>
       )}
+      {preview && (
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setPreview(null)}
+        >
+          <section
+            aria-modal="true"
+            className="modal card booking-preview"
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <header>
+              <div>
+                <span className="muted">
+                  {ar ? 'مرجع الحجز' : 'Booking reference'}
+                </span>
+                <h2>{String(preview.item?.bookingReference ?? preview.id)}</h2>
+              </div>
+              <button
+                aria-label={ar ? 'إغلاق' : 'Close'}
+                className="modal-close"
+                onClick={() => setPreview(null)}
+                type="button"
+              >
+                <IoClose aria-hidden="true" />
+              </button>
+            </header>
+            <PreviewDetails ar={ar} item={preview.item ?? {}} />
+          </section>
+        </div>
+      )}
     </>
+  );
+}
+
+function PreviewDetails({ item, ar }: { item: Item; ar: boolean }) {
+  const customer = item.customer as Item | undefined;
+  const trip = item.trip as Item | undefined;
+  const translations = (trip?.translations as Item[] | undefined) ?? [];
+  const travelers = (item.travelers as Item[] | undefined) ?? [];
+  const payments = (item.payments as Item[] | undefined) ?? [];
+  const detail = (label: string, value: unknown) => (
+    <div>
+      <span className="muted">{label}</span>
+      <strong>{String(value ?? '—')}</strong>
+    </div>
+  );
+  return (
+    <div className="preview-content">
+      <div className="preview-grid">
+        {detail(
+          ar ? 'العميل' : 'Customer',
+          `${customer?.firstName ?? ''} ${customer?.lastName ?? ''}`,
+        )}
+        {detail(ar ? 'البريد' : 'Email', customer?.email)}
+        {detail(
+          ar ? 'الرحلة' : 'Trip',
+          translations.find((value) => value.locale === (ar ? 'AR' : 'EN'))
+            ?.title,
+        )}
+        {detail(ar ? 'المقاعد' : 'Seats', item.seatCount)}
+        {detail(ar ? 'الحالة' : 'Status', item.status)}
+        {detail(ar ? 'الدفع' : 'Payment', item.paymentStatus)}
+        {detail(
+          ar ? 'الإجمالي' : 'Total',
+          `${item.totalAmount ?? 0} ${item.currency ?? ''}`,
+        )}
+        {detail(
+          ar ? 'تاريخ الإنشاء' : 'Created',
+          new Date(String(item.createdAt)).toLocaleString(
+            ar ? 'ar-DZ' : 'en-DZ',
+          ),
+        )}
+      </div>
+      <section>
+        <h3>{ar ? 'المسافرون' : 'Travelers'}</h3>
+        <div className="preview-list">
+          {travelers.map((traveler, index) => (
+            <div key={String(traveler.id ?? index)}>
+              <strong>{`${traveler.firstName ?? ''} ${traveler.lastName ?? ''}`}</strong>
+              <span className="muted">
+                {traveler.isPrimary
+                  ? ar
+                    ? 'المسافر الرئيسي'
+                    : 'Primary traveler'
+                  : ar
+                    ? `المسافر ${index + 1}`
+                    : `Traveler ${index + 1}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section>
+        <h3>{ar ? 'المدفوعات' : 'Payments'}</h3>
+        <div className="preview-list">
+          {payments.map((payment, index) => (
+            <div key={String(payment.id ?? index)}>
+              <strong>{`${payment.amount ?? 0} ${payment.currency ?? ''}`}</strong>
+              <span className="muted">{`${payment.method ?? ''} · ${payment.status ?? ''}`}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 

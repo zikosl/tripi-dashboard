@@ -1,13 +1,16 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsEmail,
   IsEnum,
   IsNumber,
@@ -16,6 +19,7 @@ import {
   Max,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { CurrentUser, type AuthUser, JwtGuard } from '../common/auth.js';
 import { DashboardService } from './dashboard.service.js';
@@ -80,12 +84,18 @@ class UpdateTripDto {
   @IsOptional() @IsNumber() @Min(0) pricePerPerson?: number;
   @IsOptional() @IsNumber() @Min(1) totalSeats?: number;
 }
+class ManagedTravelerDto {
+  @IsString() @MinLength(1) firstName!: string;
+  @IsString() @MinLength(1) lastName!: string;
+}
 class CreateManagedBookingDto {
   @IsEmail() customerEmail!: string;
   @IsString() tripId!: string;
   @IsNumber() @Min(1) seatCount!: number;
-  @IsString() travelerFirstName!: string;
-  @IsString() travelerLastName!: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ManagedTravelerDto)
+  travelers!: ManagedTravelerDto[];
   @IsEnum(['CASH', 'BANK_TRANSFER', 'PAYMENT_PROOF']) paymentMethod!:
     'CASH' | 'BANK_TRANSFER' | 'PAYMENT_PROOF';
 }
@@ -215,6 +225,12 @@ export class DashboardController {
     @Body() dto: UpdateBookingDto,
   ) {
     return this.dashboard.updateBooking(user, id, dto);
+  }
+  @Delete('bookings/:id') deleteBooking(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ) {
+    return this.dashboard.deleteBooking(user, id);
   }
   @Post('organizer/team') createMember(
     @CurrentUser() user: AuthUser,

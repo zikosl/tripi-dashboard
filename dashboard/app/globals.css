@@ -317,6 +317,18 @@ button:disabled {
   opacity: 0.65;
   pointer-events: none;
 }
+.button-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  line-height: 1;
+}
+.button-content > svg {
+  display: block;
+  flex: 0 0 auto;
+}
 .is-pending {
   display: inline-flex;
   align-items: center;

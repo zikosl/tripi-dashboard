@@ -239,6 +239,22 @@ export function DashboardSection({
   const key = `${role}/${section}`;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
+  useEffect(() => {
+    if (!modal && !preview) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || saving) return;
+      setModal(false);
+      setEditing(null);
+      setPreview(null);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = '';
+    };
+  }, [modal, preview, saving]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -534,8 +550,12 @@ export function DashboardSection({
             <strong>{error}</strong>
             <p className="muted">
               {ar
-                ? 'تحقق من الاتصال وحاول مجددًا.'
-                : 'Check the connection and try again.'}
+                ? error.includes('Cannot ')
+                  ? 'إصدار واجهة API على الخادم لا يدعم هذا الإجراء بعد. حدّث حاوية الخلفية.'
+                  : 'تحقق من الاتصال وحاول مجددًا.'
+                : error.includes('Cannot ')
+                  ? 'The deployed API version does not support this action yet. Update the backend container.'
+                  : 'Check the connection and try again.'}
             </p>
             <AsyncButton
               className="secondary-action"
@@ -658,13 +678,32 @@ export function DashboardSection({
           onMouseDown={() => !saving && setModal(false)}
         >
           <section
+            aria-labelledby="editor-title"
             aria-modal="true"
             className="modal card"
             onMouseDown={(event) => event.stopPropagation()}
             role="dialog"
           >
-            <header>
-              <h2>{editing ? (ar ? 'تعديل' : 'Edit') : action}</h2>
+            <header className="modal-header">
+              <div className="modal-heading">
+                <span className="modal-kicker">
+                  {editing
+                    ? ar
+                      ? 'تحديث السجل'
+                      : 'Update record'
+                    : ar
+                      ? 'سجل جديد'
+                      : 'New record'}
+                </span>
+                <h2 id="editor-title">
+                  {editing ? (ar ? 'تعديل' : 'Edit') : action}
+                </h2>
+                <p className="muted">
+                  {ar
+                    ? 'أدخل المعلومات المطلوبة ثم احفظ التغييرات.'
+                    : 'Complete the required information, then save your changes.'}
+                </p>
+              </div>
               <button
                 aria-label={ar ? 'إغلاق' : 'Close'}
                 className="modal-close"
@@ -683,7 +722,7 @@ export function DashboardSection({
                 {error}
               </p>
             )}
-            <form onSubmit={create}>
+            <form className="modal-form" onSubmit={create}>
               {formFields.map((field) => (
                 <label key={field.name}>
                   {translated(field.label, ar)}
@@ -818,7 +857,7 @@ export function DashboardSection({
                 </fieldset>
               )}
               <button
-                className={saving ? 'is-pending' : ''}
+                className={`modal-submit${saving ? ' is-pending' : ''}`}
                 disabled={saving}
                 type="submit"
               >
@@ -844,17 +883,20 @@ export function DashboardSection({
           onMouseDown={() => setPreview(null)}
         >
           <section
+            aria-labelledby="preview-title"
             aria-modal="true"
             className="modal card booking-preview"
             onMouseDown={(event) => event.stopPropagation()}
             role="dialog"
           >
-            <header>
-              <div>
-                <span className="muted">
+            <header className="modal-header">
+              <div className="modal-heading">
+                <span className="modal-kicker">
                   {ar ? 'مرجع الحجز' : 'Booking reference'}
                 </span>
-                <h2>{String(preview.item?.bookingReference ?? preview.id)}</h2>
+                <h2 id="preview-title">
+                  {String(preview.item?.bookingReference ?? preview.id)}
+                </h2>
               </div>
               <button
                 aria-label={ar ? 'إغلاق' : 'Close'}

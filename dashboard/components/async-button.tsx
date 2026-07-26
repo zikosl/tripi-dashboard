@@ -34,7 +34,9 @@ export function AsyncButton({
       type="button"
     >
       {pending && <span aria-hidden="true" className="spinner" />}
-      <span>{pending ? pendingLabel : children}</span>
+      <span className="button-content">
+        {pending ? pendingLabel : children}
+      </span>
     </button>
   );
 }
